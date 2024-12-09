@@ -17,12 +17,30 @@
 
     # Nixpkgs instantiated for supported system types.
     nixpkgsFor = forAllSystems (system: import nixpkgs {inherit system;});
+
+    # Raylib linking packages...
+    linuxRaylibPkgs = pkgs: [
+      pkgs.xorg.libXcursor
+      pkgs.xorg.libXrandr
+      pkgs.xorg.libXrender
+      pkgs.xorg.libXext
+      pkgs.xorg.libXfixes
+      pkgs.xorg.libXi
+      pkgs.xorg.libXinerama
+      pkgs.libGL
+    ];
   in {
     devShells = forAllSystems (system: let
       pkgs = nixpkgsFor.${system};
     in {
       default = pkgs.mkShell {
-        packages = [pkgs.zig];
+        packages =
+          [pkgs.zig]
+          ++ (
+            if system == "x86_64-linux"
+            then linuxRaylibPkgs pkgs
+            else []
+          );
       };
     });
   };
